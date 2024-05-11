@@ -1,0 +1,13 @@
+# Reference: https://docs.docker.com/engine/reference/builder/#dockerignore-file
+
+## At first, everything is ignored
+*
+
+## But the MyPersonal source code and shell scripts (in scripts folder)
+!donations/
+!scripts/
+
+## And the configuration files
+!manage.py
+!poetry*
+!pyproject.toml
