@@ -14,7 +14,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", False)
 
-ALLOWED_HOSTS = ["localhost", "https://social-food-ba6618ab911b.herokuapp.com/"]
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
