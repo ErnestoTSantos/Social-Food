@@ -14,7 +14,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", False)
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["localhost", "https://social-food-ba6618ab911b.herokuapp.com/"]
 
 # Application definition
 
@@ -27,11 +27,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Thrid party apps
     "rest_framework",
+    "corsheaders",
     # Local apps
     "donations.apps.voluntary",
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -120,3 +122,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# CORS
+CORS_ORIGIN_ALLOW_ALL = True
