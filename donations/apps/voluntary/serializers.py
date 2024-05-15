@@ -198,16 +198,20 @@ class VoluntaryAllocationSerializer(serializers.Serializer):
         return voluntary_allocation
 
     def validate_voluntary(self, voluntary):
-        if not Voluntary.objects.filter(id=voluntary).exists():
+        voluntary = Voluntary.objects.filter(id=voluntary)
+
+        if not voluntary.exists():
             raise serializers.ValidationError("Voluntário não encontrado.")
 
-        return voluntary
+        return voluntary.get()
 
     def validate_shelter(self, shelter):
-        if not Shelter.objects.filter(id=shelter).exists():
+        shelter = Shelter.objects.filter(id=shelter)
+
+        if not shelter.exists():
             raise serializers.ValidationError("Abrigo não encontrado.")
 
-        return shelter
+        return shelter.get()
 
     def validate(self, data):
         voluntary = data.get("voluntary")
