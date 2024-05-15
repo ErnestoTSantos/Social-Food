@@ -126,9 +126,9 @@ class ShelterSerializer(serializers.ModelSerializer):
     def patch(self, instance, validated_data):
         address_data = validated_data.pop("address")
         address = instance.address
-        Address.objects.update_or_create(id=address.id, **address_data)
+        address, _ = Address.objects.update_or_create(id=address.id, defaults=address_data)
 
-        shelter = Shelter.objects.update_or_create(id=instance.id, **validated_data)
+        shelter, _ = Shelter.objects.update_or_create(id=instance.id, defaults=validated_data)
 
         return shelter
 
