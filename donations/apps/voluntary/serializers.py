@@ -54,6 +54,14 @@ class AddressSerializer(serializers.ModelSerializer):
 class VoluntarySerializer(serializers.ModelSerializer):
     address = AddressSerializer()
 
+    def create(self, validated_data):
+        address_data = validated_data.pop("address")
+        address = Address.objects.create(**address_data)
+
+        voluntary = Voluntary.objects.create(address=address, **validated_data)
+
+        return voluntary
+
     class Meta:
         model = Voluntary
         fields = "__all__"
@@ -97,6 +105,14 @@ class VoluntarySerializer(serializers.ModelSerializer):
 
 class ShelterSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
+
+    def create(self, validated_data):
+        address_data = validated_data.pop("address")
+        address = Address.objects.create(**address_data)
+
+        shelter = Shelter.objects.create(address=address, **validated_data)
+
+        return shelter
 
     class Meta:
         model = Shelter
