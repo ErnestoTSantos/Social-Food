@@ -96,7 +96,7 @@ class ShelterView(APIView):
         try:
             shelter = Shelter.objects.get(id=id)
         except ValidationError:
-            return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "Invalid UUID"})
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "Invalid UUID"})
         except Shelter.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "Shelter not found"})
 
@@ -120,21 +120,25 @@ class VoluntaryAllocationView(APIView):
 
     def post(self, request):
         serializer = VoluntaryAllocationSerializer(data=request.data)
-
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        serializer.is_valid(raise_exception=True)
         serializer.save()
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def patch(self, request, pk):
-        voluntary_allocation = VoluntaryAllocation.objects.get(pk=pk)
+    def patch(self, request):
+        id = request.query_params.get("id")
+
+        try:
+            voluntary_allocation = VoluntaryAllocation.objects.get(id=id)
+        except ValidationError:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "Invalid UUID"})
+        except VoluntaryAllocation.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "Voluntary allocation not found"})
+
         serializer = VoluntaryAllocationSerializer(voluntary_allocation, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.patch(instance=voluntary_allocation, validated_data=serializer.validated_data)
 
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer.save()
         return Response(serializer.data)
 
     def put(self, request):

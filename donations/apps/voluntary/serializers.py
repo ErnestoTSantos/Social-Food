@@ -184,6 +184,19 @@ class VoluntaryAllocationSerializer(serializers.Serializer):
     voluntary = serializers.UUIDField()
     shelter = serializers.UUIDField()
 
+    def create(self, validated_data):
+        voluntary = validated_data.pop("voluntary")
+        shelter = validated_data.pop("shelter")
+
+        voluntary_allocation = VoluntaryAllocation.objects.create(voluntary=voluntary, shelter=shelter)
+
+        return voluntary_allocation
+
+    def patch(self, instance, validated_data):
+        voluntary_allocation, _ = VoluntaryAllocation.objects.update_or_create(id=instance.id, **validated_data)
+
+        return voluntary_allocation
+
     def validate_voluntary(self, voluntary):
         if not Voluntary.objects.filter(id=voluntary).exists():
             raise serializers.ValidationError("Voluntário não encontrado.")
