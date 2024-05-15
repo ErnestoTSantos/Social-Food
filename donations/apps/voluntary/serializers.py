@@ -34,19 +34,17 @@ class AddressSerializer(serializers.ModelSerializer):
         if not response:
             errors["cep"] = "CEP inválido"
 
-        if street != response.get("street"):
+        if street.lower() != response.get("street").lower():
             errors["street"] = "Rua não encontrada."
 
-        if city != response.get("city"):
+        if city.lower() != response.get("city").lower():
             errors["city"] = f"Cidade não condiz com o CEP: {cep}."
 
-        if neighborhood != response.get("neighborhood"):
+        if neighborhood.lower() != response.get("neighborhood").lower():
             errors["neighborhood"] = "Bairro não encontrado."
 
         if errors:
             raise serializers.ValidationError(errors)
-
-        data.update(response)
 
         return data
 
@@ -60,6 +58,14 @@ class VoluntarySerializer(serializers.ModelSerializer):
 
         voluntary = Voluntary.objects.create(address=address, **validated_data)
 
+        return voluntary
+
+    def patch(self, instance, validated_data):
+        address_data = validated_data.pop("address")
+        address = instance.address
+        address, _ = Address.objects.update_or_create(id=address.id, defaults=address_data)
+
+        voluntary, _ = Voluntary.objects.update_or_create(id=instance.id, defaults=validated_data)
         return voluntary
 
     class Meta:
@@ -83,13 +89,13 @@ class VoluntarySerializer(serializers.ModelSerializer):
     def validate_phone(self, phone):
         phone = phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
 
-        if len(phone) != 11 or not phone.isdigit() or Voluntary.objects.filter(phone=phone).exists():
+        if len(phone) != 11 or not phone.isdigit() or Voluntary.objects.filter(phone=phone).exists() and not self.instance:
             raise serializers.ValidationError("Telefone inválido.")
 
         return phone
 
     def validate_email(self, email):
-        if not validate_email(email) or Voluntary.objects.filter(email=email).exists():
+        if not validate_email(email) or Voluntary.objects.filter(email=email).exists() and not self.instance:
             raise serializers.ValidationError("Email inválido.")
 
         return email
@@ -97,7 +103,10 @@ class VoluntarySerializer(serializers.ModelSerializer):
     def validate_cpf(self, user_cpf):
         user_cpf = user_cpf.replace(".", "").replace("-", "")
 
-        if not cpf.validate(user_cpf) or Voluntary.objects.filter(cpf=user_cpf).exists():
+        if not cpf.validate(user_cpf):
+            raise serializers.ValidationError("CPF inválido.")
+
+        if Voluntary.objects.filter(cpf=user_cpf).exists() and not self.instance:
             raise serializers.ValidationError("CPF inválido.")
 
         return user_cpf
@@ -113,6 +122,16 @@ class ShelterSerializer(serializers.ModelSerializer):
         shelter = Shelter.objects.create(address=address, **validated_data)
 
         return shelter
+
+    def patch(self, instance, validated_data):
+        address_data = validated_data.pop("address")
+        address = instance.address
+        Address.objects.update_or_create(id=address.id, **address_data)
+
+        shelter = Shelter.objects.update_or_create(id=instance.id, **validated_data)
+
+        return shelter
+
 
     class Meta:
         model = Shelter

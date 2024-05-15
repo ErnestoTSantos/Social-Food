@@ -4,6 +4,7 @@ from rest_framework import status
 
 from donations.apps.voluntary.models import Shelter
 from donations.apps.voluntary.models import Voluntary
+from donations.apps.voluntary.models import Address
 from donations.apps.voluntary.models import VoluntaryAllocation
 
 from donations.apps.voluntary.serializers import VoluntarySerializer
@@ -35,22 +36,26 @@ class VoluntaryView(APIView):
 
     def post(self, request):
         serializer = VoluntarySerializer(data=request.data)
-
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def patch(self, request, pk):
-        voluntary = Voluntary.objects.get(pk=pk)
+        return Response(status=status.HTTP_201_CREATED, data={"message": "Voluntary created successfully"})
+
+    def patch(self, request):
+        id = request.query_params.get("id")
+
+        try:
+            voluntary = Voluntary.objects.get(id=id)
+        except ValidationError:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "Invalid UUID"})
+        except Voluntary.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "Voluntary not found"})
+
         serializer = VoluntarySerializer(voluntary, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.patch(instance=voluntary, validated_data=serializer.validated_data)
 
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer.save()
-        return Response(serializer.data)
+        return Response(status=status.HTTP_200_OK, data={"message": "Voluntary updated successfully"})
 
     def put(self, request):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -75,26 +80,31 @@ class ShelterView(APIView):
 
         shelters = Shelter.objects.all()
         serializer = ShelterSerializer(shelters, many=True)
+
         return Response(serializer.data)
 
     def post(self, request):
         serializer = ShelterSerializer(data=request.data)
-
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def patch(self, request, pk):
-        shelter = Shelter.objects.get(pk=pk)
+        return Response(status=status.HTTP_201_CREATED, data={"message": "Shelter created successfully"})
+
+    def patch(self, request):
+        id = request.query_params.get("id")
+
+        try:
+            shelter = Shelter.objects.get(id=id)
+        except ValidationError:
+            return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "Invalid UUID"})
+        except Shelter.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND, data={"error": "Shelter not found"})
+
         serializer = ShelterSerializer(shelter, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.patch(instance=shelter, validated_data=serializer.validated_data)
 
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer.save()
-        return Response(serializer.data)
+        return Response(status=status.HTTP_200_OK, data={"message": "Shelter updated successfully"})
 
     def put(self, request):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
